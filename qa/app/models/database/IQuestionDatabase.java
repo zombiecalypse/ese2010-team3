@@ -2,6 +2,7 @@ package models.database;
 
 import java.util.List;
 
+import models.Answer;
 import models.Question;
 import models.User;
 
@@ -114,4 +115,13 @@ public interface IQuestionDatabase {
 	 * Empties the Database.
 	 */
 	public void clear();
+
+	/**
+	 * Like {@link #searchFor}, but searches for particularly interesting
+	 * Answers.
+	 * 
+	 * @param term
+	 * @return
+	 */
+	public List<Answer> searchForAnswer(String term);
 }

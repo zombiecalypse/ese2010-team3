@@ -17,6 +17,10 @@ public class HotTagDatabase implements ITagDatabase {
 	}
 
 	public Tag get(String name) {
+		return this.tags.get(name);
+	}
+
+	public Tag getOrAdd(String name) {
 		Tag tag = this.tags.get(name);
 		if (tag == null && name.matches(tagRegex)) {
 			tag = new Tag(name);

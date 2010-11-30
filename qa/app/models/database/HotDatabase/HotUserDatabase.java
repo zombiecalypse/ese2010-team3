@@ -3,10 +3,13 @@ package models.database.HotDatabase;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import models.User;
+import models.SearchEngine.UserSearch;
 import models.database.IUserDatabase;
+import models.helpers.Mapper;
 
 public class HotUserDatabase implements IUserDatabase {
 	private static HashMap<String, User> users = new HashMap();
@@ -57,5 +60,9 @@ public class HotUserDatabase implements IUserDatabase {
 			}
 		}
 		return moderators;
+	}
+
+	public List<User> searchFor(String term) {
+		return Mapper.sort(all(), new UserSearch(term));
 	}
 }

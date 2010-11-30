@@ -302,7 +302,7 @@ public class Question extends Entry implements IObservable {
 				bit = bit.substring(0, 32);
 			}
 
-			Tag tag = Database.get().tags().get(bit);
+			Tag tag = Database.get().tags().getOrAdd(bit);
 			if (tag != null && !this.tags.contains(tag)) {
 				this.tags.add(tag);
 				tag.register(this);
@@ -381,7 +381,7 @@ public class Question extends Entry implements IObservable {
 	}
 
 	public void addTag(String text) {
-		this.tags.add(Database.get().tags().get(text));
+		this.tags.add(Database.get().tags().getOrAdd(text));
 	}
 
 }

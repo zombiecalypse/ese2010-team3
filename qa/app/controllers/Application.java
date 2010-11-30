@@ -81,7 +81,7 @@ public class Application extends Controller {
 		List<Comment> comments = answer.comments();
 		render(answer, comments, question);
 	}
-	
+
 	public static void confirmDeleteQuestion(int id) {
 		Question question = Database.get().questions().get(id);
 		render(question);
@@ -128,8 +128,9 @@ public class Application extends Controller {
 	public static void showprofile(String userName) {
 		User showUser = Database.get().users().get(userName);
 		String biography = showUser.getBiography();
-		if (biography != null)
+		if (biography != null) {
 			biography = Tools.markdownToHtml(biography);
+		}
 		boolean canEdit = mayLoggedInUserEditProfileOf(showUser);
 		render(showUser, biography, canEdit);
 	}
@@ -159,11 +160,14 @@ public class Application extends Controller {
 	}
 
 	public static void search(String term, int index) {
-		List<Question> results = Database.get().questions().searchFor(term);
-		int maxIndex = Tools.determineMaximumIndex(results, entriesPerPage);
+		List<Question> questions = Database.get().questions().searchFor(term);
+		Database.get().users().searchFor(term);
+		Database.get().questions().searchForAnswer(term).subList(0, 3);
 
-		results = Tools.paginate(results, entriesPerPage, index);
-		render(results, term, index, maxIndex);
+		int maxIndex = Tools.determineMaximumIndex(questions, entriesPerPage);
+
+		questions = Tools.paginate(questions, entriesPerPage, index);
+		render(questions, term, index, maxIndex);
 	}
 
 	public static void notifications(int content) {

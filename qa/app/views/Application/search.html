@@ -1,10 +1,12 @@
 #{extends 'main.html' /}
 #{set title:'Search: '+term /}
 <h1>Search: ${term}</h1>
+#{if users.size() > 0}
+<h2>Users</h2>
 
-#{if results.size() > 0}
+#{if questions.size() > 0}
 	<ul>
-		#{list items:results, as:'question'}
+		#{list items:questions, as:'question'}
 			#{question question:question, user:user, extended:false /}
 		#{/list}
 	</ul>

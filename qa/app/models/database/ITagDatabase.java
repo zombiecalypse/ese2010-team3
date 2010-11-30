@@ -22,9 +22,17 @@ public interface ITagDatabase {
 	 * DB and that there is only one
 	 * 
 	 * @param name
-	 * @return
+	 * @return The unique Tag with the given name.
 	 */
 
+	public Tag getOrAdd(String bit);
+
+	/**
+	 * Get the tag with this name or null if there is none.
+	 * 
+	 * @param name
+	 * @return the
+	 */
 	public Tag get(String name);
 
 	/**
@@ -45,4 +53,5 @@ public interface ITagDatabase {
 	 */
 
 	public void clear();
+
 }

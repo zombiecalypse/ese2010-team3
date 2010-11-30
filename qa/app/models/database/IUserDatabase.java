@@ -1,6 +1,7 @@
 package models.database;
 
 import java.util.Collection;
+import java.util.List;
 
 import models.User;
 
@@ -77,4 +78,14 @@ public interface IUserDatabase {
 	 * Get moderating crowd.
 	 */
 	public Collection<User> allModerators();
+
+	/**
+	 * Searches for the given <code>term</code>. This includes at least a search
+	 * for the User's name.
+	 * 
+	 * @param term
+	 * @return a list of <code>User</code>s, by decreasing fit for the given
+	 *         term.
+	 */
+	public List<User> searchFor(String term);
 }

@@ -133,18 +133,17 @@ public class Tools {
 		int limit = entries.size();
 		int upperBound = ((index + 1) * entriesPerPage);
 
-		if (upperBound <= limit) {
+		if (upperBound <= limit)
 			return entries.subList(index * entriesPerPage, upperBound);
-		}
 		if (index * entriesPerPage <= limit)
 			return entries.subList(index * entriesPerPage, limit);
 
 		return entries;
 	}
 
-	public static int determineMaximumIndex(List<Question> questions,
+	public static int determineMaximumIndex(List<?> list,
 			int entriesPerPage) {
-		return (questions.size() - 1) / entriesPerPage;
+		return (list.size() - 1) / entriesPerPage;
 	}
 
 	/**
@@ -167,6 +166,7 @@ public class Tools {
 	 * @return the string
 	 */
 	public static String htmlToText(String content) {
+		content = content != null ? content : "";
 		return Jsoup.clean(content, Whitelist.none());
 	}
 }

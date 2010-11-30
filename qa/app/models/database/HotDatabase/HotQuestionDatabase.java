@@ -1,6 +1,7 @@
 package models.database.HotDatabase;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -10,7 +11,8 @@ import models.Answer;
 import models.Question;
 import models.Tag;
 import models.User;
-import models.SearchEngine.SearchFilter;
+import models.SearchEngine.AnswerSearch;
+import models.SearchEngine.QuestionSearch;
 import models.database.Database;
 import models.database.IQuestionDatabase;
 import models.helpers.IDTable;
@@ -25,7 +27,7 @@ public class HotQuestionDatabase implements IQuestionDatabase {
 		for (String s : term.split("\\W+")) {
 			tags.add(Database.get().tags().get(s));
 		}
-		return Mapper.sort(this.questions, new SearchFilter(term, tags));
+		return Mapper.sort(this.questions, new QuestionSearch(term, tags));
 	}
 
 	/**
@@ -95,7 +97,7 @@ public class HotQuestionDatabase implements IQuestionDatabase {
 	}
 
 	public List<Question> findSimilar(Question q) {
-		List<Question> result = Mapper.sort(this.questions, new SearchFilter(
+		List<Question> result = Mapper.sort(this.questions, new QuestionSearch(
 				null, new HashSet<Tag>(q.getTags())));
 		result.remove(q); // don't find the question itself!
 		return result;
@@ -103,5 +105,17 @@ public class HotQuestionDatabase implements IQuestionDatabase {
 
 	public void clear() {
 		this.questions.clear();
+	}
+
+	public List<Answer> searchForAnswer(String term) {
+		return Mapper.sort(allAnswers(), new AnswerSearch(term));
+	}
+
+	public Collection<Answer> allAnswers() {
+		Set<Answer> answers = new HashSet<Answer>();
+		for (Question question : all()) {
+			answers.addAll(question.answers());
+		}
+		return answers;
 	}
 }
