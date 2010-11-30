@@ -21,4 +21,8 @@ public class Session implements ISession {
 		return Database.get().users().get(
 				controllers.Secure.Security.connected());
 	}
+
+	public int getEntriesPerPage() {
+		return 15;
+	}
 }

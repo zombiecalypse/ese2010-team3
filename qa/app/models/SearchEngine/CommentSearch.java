@@ -8,7 +8,6 @@ public class CommentSearch extends EntrySearch<Comment> {
 		super(query);
 	}
 
-	@Override
 	public Double visit(Comment comment) {
 		clearMustHave();
 		double rating = rateText(comment, this.mustHave);

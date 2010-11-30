@@ -1,0 +1,26 @@
+#{extends 'main.html' /}
+#{set title:'Search: '+term /}
+<h1>Search: ${term}</h1>
+
+#{if answers.size() > 0}
+	<ul>
+		#{list items:answers, as:'answer'}
+			#{answerSearch answer:answer, user:user /}
+		#{/list}
+	</ul>
+	#{if maxIndex > 0}
+		<p class = "pagination">
+		#{if index != 0}
+			<a href="@{Search.searchAnswer(term, index-1)}">Previous</a>
+		#{/if}
+		${index + 1}/${maxIndex + 1}
+		#{if index != maxIndex}
+			<a href="@{Search.searchAnswer(term, index+1)}">Next</a>
+		#{/if}
+	#{/if}
+</p>
+#{/if}#{else}
+	<div class="message">
+		<p>No questions matching '${term}' found!</p>
+	</div><!-- end message -->
+#{/else}

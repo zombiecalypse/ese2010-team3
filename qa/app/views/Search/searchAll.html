@@ -1,0 +1,52 @@
+#{extends 'main.html' /}
+#{set title:'Search: '+term /}
+<h1>Search: ${term}</h1>
+<div><h2>Users</h2>
+#{if users.size() > 0}
+	<ul>
+		#{list items:users, as:'user'}
+			<li class="user">#{a @Application.showprofile(user.getName())} ${user.getName()}#{/a}
+		#{/list}
+		#{if moreQuestions}<li class="user">#{a @Search.searchUser(term)}more...#{/a}</li>#{/if}
+	<ul>
+#{/if}
+#{else}
+
+	<div class="message">
+		<p>No User matching '${term}' found!</p>
+	</div><!-- end message -->
+#{/else}
+</div>
+
+<div><h2>Questions</h2>
+#{if questions.size() > 0}
+	<ul>
+		#{list items:questions, as:'question'}
+			#{question question:question, user:user, extended:false /}
+		#{/list}
+		#{if moreQuestions}
+			<li class="question">#{a @Search.searchQuestion(term)}more...#{/a}</li>
+		#{/if}
+	</ul>
+#{/if}#{else}
+	<div class="message">
+		<p>No questions matching '${term}' found!</p>
+	</div><!-- end message -->
+#{/else}</div>
+
+
+<div><h2>Answers</h2>
+#{if answers.size() > 0}
+	<ul>
+		#{list items:answers, as:'answer'}
+			#{answerSearch answer:answer, user:user /}
+		#{/list}
+		#{if moreAnswer}
+			<li class="answer">#{a @Search.searchAnswer(term)}more...#{/a}</li>
+		#{/if}
+	</ul>
+#{/if}#{else}
+	<div class="message">
+		<p>No Answers matching '${term}' found!</p>
+	</div><!-- end message -->
+#{/else}</div>

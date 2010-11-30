@@ -21,8 +21,6 @@ import play.mvc.Controller;
 
 public class Application extends Controller {
 
-	private static final int entriesPerPage = 15;
-
 	@Before
 	static void setConnectedUser() {
 		if (controllers.Secure.Security.isConnected()) {
@@ -34,13 +32,15 @@ public class Application extends Controller {
 
 	public static void index(int index) {
 		List<Question> questions = Database.get().questions().all();
-		int maxIndex = Tools.determineMaximumIndex(questions, entriesPerPage);
+		int maxIndex = Tools.determineMaximumIndex(questions,
+				Session.get().getEntriesPerPage());
 		Collections.sort(questions, new Comparator<Question>() {
 			public int compare(Question q1, Question q2) {
 				return (q2.timestamp()).compareTo(q1.timestamp());
 			}
 		});
-		questions = Tools.paginate(questions, entriesPerPage, index);
+		questions = Tools.paginate(questions,
+				Session.get().getEntriesPerPage(), index);
 		render(questions, index, maxIndex);
 	}
 
@@ -157,17 +157,6 @@ public class Application extends Controller {
 			tags = new String[0];
 		}
 		renderJSON(tags);
-	}
-
-	public static void search(String term, int index) {
-		List<Question> questions = Database.get().questions().searchFor(term);
-		Database.get().users().searchFor(term);
-		Database.get().questions().searchForAnswer(term).subList(0, 3);
-
-		int maxIndex = Tools.determineMaximumIndex(questions, entriesPerPage);
-
-		questions = Tools.paginate(questions, entriesPerPage, index);
-		render(questions, term, index, maxIndex);
 	}
 
 	public static void notifications(int content) {

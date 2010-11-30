@@ -8,7 +8,6 @@ public class AnswerSearch extends EntrySearch<Answer> {
 		super(query);
 	}
 
-	@Override
 	public Double visit(Answer answer) {
 		clearMustHave();
 		double rating = rateText(answer, this.mustHave);

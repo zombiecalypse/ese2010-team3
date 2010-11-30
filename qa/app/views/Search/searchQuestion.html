@@ -1,8 +1,6 @@
 #{extends 'main.html' /}
 #{set title:'Search: '+term /}
 <h1>Search: ${term}</h1>
-#{if users.size() > 0}
-<h2>Users</h2>
 
 #{if questions.size() > 0}
 	<ul>
@@ -13,11 +11,11 @@
 	#{if maxIndex > 0}
 		<p class = "pagination">
 		#{if index != 0}
-			<a href="@{Application.search(term, index-1)}">Previous</a>
+			<a href="@{Search.searchQuestion(term, index-1)}">Previous</a>
 		#{/if}
 		${index + 1}/${maxIndex + 1}
 		#{if index != maxIndex}
-			<a href="@{Application.search(term, index+1)}">Next</a>
+			<a href="@{Search.searchQuestion(term, index+1)}">Next</a>
 		#{/if}
 	#{/if}
 </p>

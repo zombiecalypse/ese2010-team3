@@ -54,8 +54,17 @@ GET		/notification/{id}/unwatch				Secured.unwatchQuestionFromList
 GET		/notification/{id}/delete				Secured.deleteNotification
 GET		/notification/clearNew					Secured.clearNewNotifications
 
-GET		/search/{term}/{index}					Application.search
-GET		/search/{term}							Application.search
+GET		/search/all/{term}						Search.searchAll
+
+GET		/search/question/{term}					Search.searchQuestion
+GET		/search/question/{term}/{id}			Search.searchQuestion
+
+GET		/search/answer/{term}					Search.searchAnswer
+GET		/search/answer/{term}/{id}				Search.searchAnswer
+
+GET		/search/user/{term}						Search.searchUser
+GET		/search/user/{term}/{id}				Search.searchUser
+
 
 GET		/admin									Application.admin
 

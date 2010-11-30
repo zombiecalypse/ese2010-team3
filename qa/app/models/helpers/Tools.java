@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import models.Question;
 import models.SearchEngine.StopWords;
 
 import org.jsoup.Jsoup;
@@ -128,7 +127,7 @@ public class Tools {
 	 * @return a list of the entries on the given page number.
 	 * 
 	 */
-	public static List<Question> paginate(List<Question> entries,
+	public static <A> List<A> paginate(List<A> entries,
 			int entriesPerPage, int index) {
 		int limit = entries.size();
 		int upperBound = ((index + 1) * entriesPerPage);
