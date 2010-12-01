@@ -1,17 +1,17 @@
 package tests.mocks;
 
 import models.User;
-import controllers.ISession;
+import controllers.Session;
 
-public class SessionMock implements ISession {
+public class SessionMock extends Session {
 	private User user;
 
 	public User currentUser() {
-		return user;
+		return this.user;
 	}
 
 	public void loginAs(User _user) {
-		user = _user;
+		this.user = _user;
 	}
 
 }

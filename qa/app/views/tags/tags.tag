@@ -1,6 +1,6 @@
 #{if false} Arguments: _question, _editable #{/if}
 <div class="tags">
-	#{form @Secured.updateTags(_question.id())}
+	#{form @CQuestion.updateTags(_question.id())}
 	#{list items:_question.getTags(), as:'tag'}
 		<a href="@{Search.searchQuestion(tag.getName())}" class="tag">${tag.getName().escape()}</a>
 	#{/list}

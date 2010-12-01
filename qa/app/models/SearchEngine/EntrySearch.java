@@ -7,10 +7,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import models.Entry;
-import models.helpers.Filter;
+import models.helpers.IFilter;
 import models.helpers.Tools;
 
-public abstract class EntrySearch<E extends Entry> implements Filter<E, Double> {
+public abstract class EntrySearch<E extends Entry> implements
+		IFilter<E, Double> {
 	protected final Set<String> queryFulltext;
 	protected final Set<String> mustHave;
 

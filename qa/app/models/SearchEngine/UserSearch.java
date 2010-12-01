@@ -2,9 +2,9 @@ package models.SearchEngine;
 
 import static models.helpers.StringDistance.getLevenshteinDistance;
 import models.User;
-import models.helpers.Filter;
+import models.helpers.IFilter;
 
-public class UserSearch implements Filter<User, Double> {
+public class UserSearch implements IFilter<User, Double> {
 
 	private String searchString;
 
