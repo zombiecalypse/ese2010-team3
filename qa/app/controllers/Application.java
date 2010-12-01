@@ -283,6 +283,12 @@ public class Application extends Controller {
 		render();
 	}
 
+	/**
+	 * Changes the language of the user interface.
+	 * 
+	 * @param langId
+	 *            an ISO-631-like language code (e.g. en, de, fr)
+	 */
 	public static void selectLanguage(@Required String langId) {
 		if (langId != null) {
 			Lang.change(langId);
@@ -295,5 +301,19 @@ public class Application extends Controller {
 		if (!CUser.redirectToCallingPage()) {
 			Application.index(0);
 		}
+	}
+
+	/**
+	 * Leads to the edit-view of the {@link User}'s profile
+	 * 
+	 * @param userName
+	 *            the name of the {@link User} who owns the profile
+	 */
+	public static void editProfile(String userName) {
+		User showUser = Database.get().users().get(userName);
+		if (!userCanEditProfile(showUser)) {
+			showprofile(userName);
+		}
+		render(showUser);
 	}
 }

@@ -123,6 +123,7 @@ secure.password=Passwort
 secure.remember=Merken
 secure.signin=Einloggen
 secure.saveprofile=Profil speichern
+secure.registration=Registrieren
 secure.error=Huch, unbekannter Benutzername oder falsches Passwort.
 secure.logout=Du bist nun ausgeloggt.
 secure.emailerror=Huch, ungültige eMail-Adresse.
@@ -174,3 +175,14 @@ search.fail.users=Keine Benutzer gefunden für
 search.answers=Suche in Antworten:
 search.questions=Suche in Fragen:
 search.users=Suche in Benutzern:
+search.placeholder="Frage suchen"
+
+#Time
+since.seconds=vor %d Sekunden
+since.minutes=vor %d Minute(n)
+since.hours=vor %d Stund(en)
+since.days=vor %d Tag(en)
+since.months=vor %d Monat(en)
+since.years=vor %d Jahr(en)
+
+

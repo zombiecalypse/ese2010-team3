@@ -123,6 +123,7 @@ secure.password=Password
 secure.remember=Remember me
 secure.signin=Sign in
 secure.saveprofile=Save profile
+secure.registration=Registration
 secure.error=Oops, unknown username or password.
 secure.logout=You have been logged out.
 secure.emailerror=Oops, this is not a valid eMail address.
@@ -175,3 +176,13 @@ search.fail.users=Found no user matching
 search.answers=Search Answers for:
 search.questions=Search Questions for:
 search.users=Search Users for:
+search.placeholder="Frage suchen"
+
+#Time
+since.seconds=%d seconds ago
+since.minutes=%d minute(s) ago
+since.hours=%d hour(s) ago
+since.days=%d day(s) ago
+since.months=%d month(s) ago
+since.years=%d year(s) ago
+
