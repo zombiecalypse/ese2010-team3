@@ -66,6 +66,8 @@ GET		/search/user/{term}						Search.searchUser
 GET		/search/user/{term}/{id}				Search.searchUser
 
 
+GET		/setlang/{langId}						Application.selectLanguage
+
 GET		/admin									Application.admin
 
 # Map static resources from the /app/public folder to the /public path

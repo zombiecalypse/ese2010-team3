@@ -22,10 +22,14 @@ public class UserSearch implements Filter<User, Double> {
 
 	public Double visit(User user) {
 		Double rating = rateUsername(user.getName());
-		if (rating > 0.25)
+		if (rating > getMinimalMatchQuality())
 			return null;
 		else
 			return rating;
+	}
+
+	private Double getMinimalMatchQuality() {
+		return 0.25;
 	}
 
 }

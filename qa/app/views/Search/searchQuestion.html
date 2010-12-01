@@ -11,16 +11,16 @@
 	#{if maxIndex > 0}
 		<p class = "pagination">
 		#{if index != 0}
-			<a href="@{Search.searchQuestion(term, index-1)}">Previous</a>
+			<a href="@{Search.searchQuestion(term, index-1)}">&{'previous'}</a>
 		#{/if}
 		${index + 1}/${maxIndex + 1}
 		#{if index != maxIndex}
-			<a href="@{Search.searchQuestion(term, index+1)}">Next</a>
+			<a href="@{Search.searchQuestion(term, index+1)}">&{'next'}</a>
 		#{/if}
 	#{/if}
 </p>
 #{/if}#{else}
 	<div class="message">
-		<p>No questions matching '${term}' found!</p>
+		<p>&{'search.fail.questions'} ${term}</p>
 	</div><!-- end message -->
 #{/else}

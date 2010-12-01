@@ -7,13 +7,13 @@
 		#{list items:users, as:'user'}
 			<li class="user">#{a @Application.showprofile(user.getName())} ${user.getName()}#{/a}
 		#{/list}
-		#{if moreQuestions}<li class="user">#{a @Search.searchUser(term)}more...#{/a}</li>#{/if}
+		#{if moreQuestions}<li class="user">#{a @Search.searchUser(term)}&{'more'}...#{/a}</li>#{/if}
 	<ul>
 #{/if}
 #{else}
 
 	<div class="message">
-		<p>No User matching '${term}' found!</p>
+		<p>&{'search.fail.users'} ${term}</p>
 	</div><!-- end message -->
 #{/else}
 </div>
@@ -25,12 +25,12 @@
 			#{question question:question, user:user, extended:false /}
 		#{/list}
 		#{if moreQuestions}
-			<li class="question">#{a @Search.searchQuestion(term)}more...#{/a}</li>
+			<li class="question">#{a @Search.searchQuestion(term)}&{'more'}...#{/a}</li>
 		#{/if}
 	</ul>
 #{/if}#{else}
 	<div class="message">
-		<p>No questions matching '${term}' found!</p>
+		<p>&{'search.fail.questions'} ${term}</p>
 	</div><!-- end message -->
 #{/else}</div>
 
@@ -41,12 +41,12 @@
 		#{list items:answers, as:'answer'}
 			#{answerSearch answer:answer, user:user /}
 		#{/list}
-		#{if moreAnswer}
-			<li class="answer">#{a @Search.searchAnswer(term)}more...#{/a}</li>
+		#{if moreAnswers}
+			<li class="answer">#{a @Search.searchAnswer(term)}&{'more'}...#{/a}</li>
 		#{/if}
 	</ul>
 #{/if}#{else}
 	<div class="message">
-		<p>No Answers matching '${term}' found!</p>
+		<p>&{'search.fail.answers'} ${term}</p>
 	</div><!-- end message -->
 #{/else}</div>

@@ -16,20 +16,32 @@ public class Search extends Controller {
 		List<User> users = Database.get().users().searchFor(term);
 		List<Answer> answers = Database.get().questions().searchForAnswer(term);
 		boolean moreQuestions = false, moreUsers = false, moreAnswers = false;
-		if (questions.size() > 3) {
-			questions = questions.subList(0, 3);
+		if (questions.size() > getQuestionSearchPreviewSize()) {
+			questions = questions.subList(0, getQuestionSearchPreviewSize());
 			moreQuestions = true;
 		}
-		if (users.size() > 3) {
-			users = users.subList(0, 3);
+		if (users.size() > getUserSearchPreviewSize()) {
+			users = users.subList(0, getUserSearchPreviewSize());
 			moreUsers = true;
 		}
-		if (answers.size() > 3) {
-			answers = answers.subList(0, 3);
+		if (answers.size() > getAnswerSearchPreviewSize()) {
+			answers = answers.subList(0, getAnswerSearchPreviewSize());
 			moreAnswers = true;
 		}
 		render(term, questions, answers, users, moreQuestions, moreAnswers,
 				moreUsers);
+	}
+
+	private static int getAnswerSearchPreviewSize() {
+		return 3;
+	}
+
+	private static int getQuestionSearchPreviewSize() {
+		return 3;
+	}
+
+	private static int getUserSearchPreviewSize() {
+		return 3;
 	}
 
 	public static void searchQuestion(String term, int index) {
