@@ -8,6 +8,8 @@ import models.Notification;
 import models.Question;
 import models.SystemInformation;
 import models.User;
+import models.helpers.IObservable;
+import models.helpers.IObserver;
 
 import org.junit.After;
 import org.junit.Before;
@@ -100,12 +102,12 @@ public class NotificationTest extends UnitTest {
 		assertEquals(norbert.getNotifications().size(), 10);
 
 		Notification first = Collections.max(norbert.getNotifications());
-		assertEquals(norbert.getNotification(first.getID()), first);
+		assertEquals(norbert.getNotification(first.id()), first);
 		assertEquals(norbert.getNotifications().get(9), first);
 
 		for (int i = 0; i < 9; i++) {
-			assertTrue(norbert.getNotifications().get(i).getID() > norbert
-					.getNotifications().get(i + 1).getID());
+			assertTrue(norbert.getNotifications().get(i).id() > norbert
+					.getNotifications().get(i + 1).id());
 		}
 
 		Notification last = Collections.min(norbert.getNotifications());
@@ -115,6 +117,8 @@ public class NotificationTest extends UnitTest {
 		last.unsetNew();
 		assertEquals(norbert.getVeryRecentNewNotification(), norbert
 				.getNotifications().get(1));
+
+		assertNull(norbert.getNotification(-1));
 	}
 
 	@Test
@@ -148,10 +152,55 @@ public class NotificationTest extends UnitTest {
 		question.answer(andrew, "soon to be gone");
 		assertEquals(norbert.getNotifications().size(), 1);
 		assertNotNull(norbert.getVeryRecentNewNotification());
-		andrew.anonymize(true, true);
+		andrew.anonymize(true);
 		andrew.delete();
 		assertEquals(norbert.getNotifications().size(), 1);
 		assertNotNull(norbert.getVeryRecentNewNotification());
 		assertNull(norbert.getVeryRecentNewNotification().getAbout().owner());
+	}
+
+	@Test
+	public void shouldUnregisterNotifications() {
+		norbert.observe(question, question.answer(andrew, "???"));
+		Notification notification = norbert.getNotifications().get(0);
+		assertNotNull(notification.owner());
+		norbert.anonymize(true);
+		norbert.delete();
+		assertNull(notification.owner());
+	}
+
+	@Test
+	public void shouldOnlyNotifyAboutAnswersForNow() {
+		IObservable unobservable = new IObservable() {
+			public void addObserver(IObserver o) {
+			}
+			public void removeObserver(IObserver o) {
+			}
+			public boolean hasObserver(IObserver o) {
+				return false;
+			}
+			public void notifyObservers(Object arg) {
+			}
+		};
+		norbert.observe(unobservable, null);
+		norbert.observe(question, null);
+		assertEquals(norbert.getNotifications().size(), 0);
+
+		// keep Cobertura happy
+		unobservable.addObserver(norbert);
+		unobservable.removeObserver(norbert);
+		assertFalse(unobservable.hasObserver(norbert));
+		unobservable.notifyObservers(norbert);
+	}
+
+	@Test
+	public void shouldRequireObserver() {
+		boolean hasThrown = false;
+		try {
+			question.addObserver(null);
+		} catch (IllegalArgumentException ex) {
+			hasThrown = true;
+		}
+		assertTrue(hasThrown);
 	}
 }

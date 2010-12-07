@@ -43,9 +43,12 @@ public class VoteTest extends UnitTest {
 		assertEquals(question.upVotes(), 1);
 		assertEquals(question.downVotes(), 0);
 		assertTrue(question.hasUpVote(bill));
+		assertEquals(question.getVotes().size(), 1);
+
 		assertEquals(answer.upVotes(), 1);
 		assertEquals(answer.downVotes(), 0);
 		assertTrue(answer.hasUpVote(bill));
+		assertFalse(answer.hasUpVote(answer.owner()));
 	}
 
 	@Test
@@ -58,6 +61,7 @@ public class VoteTest extends UnitTest {
 		assertEquals(answer.upVotes(), 0);
 		assertEquals(answer.downVotes(), 1);
 		assertTrue(answer.hasDownVote(bill));
+		assertFalse(answer.hasUpVote(bill));
 	}
 
 	@Test
@@ -66,7 +70,7 @@ public class VoteTest extends UnitTest {
 			answer.voteUp(new User("up" + i, "pw"));
 		}
 		for (int i = 0; i < 42; i++) {
-			answer.voteDown(new User("down" + i, "pw"));
+			answer.voteDown(new User("down" + i, "down"));
 		}
 		assertEquals(answer.upVotes(), 11);
 		assertEquals(answer.downVotes(), 42);
@@ -130,5 +134,18 @@ public class VoteTest extends UnitTest {
 		this.question.setBestAnswer(this.secondAnswer);
 		assertEquals(this.answer.compareTo(this.secondAnswer), 1);
 		assertSame(this.question.answers().get(0), this.secondAnswer);
+	}
+
+	@Test
+	public void shouldNotLetVoteForOneself() {
+		assertNull(this.question.voteUp(this.question.owner()));
+		assertEquals(this.question.rating(), 0);
+	}
+
+	@Test
+	public void shouldCancelIdempotently() {
+		this.answer.voteUp(bill);
+		this.answer.voteCancel(bill);
+		this.answer.voteCancel(bill);
 	}
 }

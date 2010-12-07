@@ -2,7 +2,10 @@ package tests;
 
 import java.text.ParseException;
 
+import models.Answer;
 import models.Question;
+import models.SystemInformation;
+import models.Tag;
 import models.User;
 import models.database.Database;
 import models.helpers.Tools;
@@ -11,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import play.test.UnitTest;
+import tests.mocks.SystemInformationMock;
 
 public class UserTest extends UnitTest {
 
@@ -33,11 +37,11 @@ public class UserTest extends UnitTest {
 
 	@Test
 	public void checkUsernameAvailable() {
-		assertTrue(User.isAvailable("JaneSmith"));
-		Database.get().users().register("JaneSmith", "janesmith");
-		assertFalse(User.isAvailable("JaneSmith"));
-		assertFalse(User.isAvailable("janesmith"));
-		assertFalse(User.isAvailable("jAnEsMiTh"));
+		assertTrue(Database.get().users().isAvailable("JaneSmith"));
+		Database.get().users().register("JaneSmith", "janesmith", "jane@smith.com");
+		assertFalse(Database.get().users().isAvailable("JaneSmith"));
+		assertFalse(Database.get().users().isAvailable("janesmith"));
+		assertFalse(Database.get().users().isAvailable("jAnEsMiTh"));
 	}
 
 	@Test
@@ -61,17 +65,19 @@ public class UserTest extends UnitTest {
 		User user = new User("Bill", "bill");
 		assertTrue(user.checkPW("bill"));
 		assertEquals(Tools.encrypt("bill"), user.getSHA1Password());
-		assertEquals(Tools.encrypt(""),
-				"da39a3ee5e6b4b0d3255bfef95601890afd80709"); // Source:
-
-		// wikipedia.org/wiki/Examples_of_SHA_digests
-		assertFalse(Tools.encrypt("password").equals(Tools.encrypt("Password")));
-
+		user.setSHA1Password("bill2");
+		assertFalse(user.checkPW("bill"));
 	}
 
 	@Test
 	public void shouldEditProfileCorrectly() throws ParseException {
+		SystemInformationMock sys = new SystemInformationMock();
+		SystemInformation.mockWith(sys);
+		sys.year(2010).month(12).day(3);
+
 		User user = new User("Jack", "jack");
+		assertEquals(user.getAge(), 0);
+
 		user.setDateOfBirth("14.9.1987");
 		user.setBiography("I lived");
 		user.setEmail("test@test.tt");
@@ -81,12 +87,13 @@ public class UserTest extends UnitTest {
 		user.setWebsite("http://www.test.ch");
 
 		assertEquals(user.getAge(), 23);
-		assertTrue(user.getBiography().equalsIgnoreCase("I lived"));
-		assertTrue(user.getEmail().equals("test@test.tt"));
-		assertTrue(user.getEmployer().equals("TestInc"));
-		assertTrue(user.getFullname().equals("Test Tester"));
-		assertTrue(user.getProfession().equals("tester"));
-		assertTrue(user.getWebsite().equals("http://www.test.ch"));
+		assertEquals(user.getDateOfBirth(), "14.09.1987");
+		assertEquals(user.getBiography(), "I lived");
+		assertEquals(user.getEmail(), "test@test.tt");
+		assertEquals(user.getEmployer(), "TestInc");
+		assertEquals(user.getFullname(), "Test Tester");
+		assertEquals(user.getProfession(), "tester");
+		assertEquals(user.getWebsite(), "http://www.test.ch");
 	}
 
 	@Test
@@ -118,6 +125,7 @@ public class UserTest extends UnitTest {
 		User user2 = new User("Cheater", "cheater");
 		assertFalse(user.isBlocked());
 		assertFalse(user2.isBlocked());
+		assertFalse(user2.isMaybeCheater());
 		assertEquals(user.getStatusMessage(), "");
 		assertEquals(user2.getStatusMessage(), "");
 		for (int i = 0; i < 5; i++) {
@@ -134,6 +142,22 @@ public class UserTest extends UnitTest {
 	}
 	
 	@Test
+	public void shouldAllowVotingOften() {
+		User voter = new User("Voter", "voter");
+		User user1 = new User("User1", "user1");
+		User user2 = new User("User2", "user2");
+
+		for (int i = 0; i < 5; i++) {
+			new Question(user1, "Q1-" + i).voteUp(voter);
+			new Question(user2, "Q2-" + i).voteUp(voter);
+		}
+
+		assertFalse(voter.isMaybeCheater());
+		new Question(user1, "Q1-last").voteUp(voter);
+		assertTrue(voter.isMaybeCheater());
+	}
+
+	@Test
 	public void shouldNotBeAbleToEditForeignPosts() {
 		User user1 = new User("Jack", "jack");
 		User user2 = new User("John", "john");
@@ -144,6 +168,9 @@ public class UserTest extends UnitTest {
 		assertTrue(user1.canEdit(q));
 		/* owner should be able to edit the question */
 		assertTrue(user2.canEdit(q));
+		/* blocked owner should not be able to edit the question */
+		user2.block("for testing");
+		assertFalse(user2.canEdit(q));
 		/* user that is neither a moderator nor the owner of
 		   the question should NOT be able to edit the question */
 		assertFalse(user3.canEdit(q));
@@ -224,30 +251,59 @@ public class UserTest extends UnitTest {
 	}
 
 	@Test
+	public void shouldHaveRecentEntries() {
+		SystemInformationMock sys = new SystemInformationMock();
+		SystemInformation.mockWith(sys);
+		sys.year(2000).month(6).day(6).hour(12).minute(0).second(0);
+
+		User user = new User("Jack", "jack");
+		assertEquals(0, user.getRecentQuestions().size());
+		assertEquals(0, user.getRecentAnswers().size());
+		assertEquals(0, user.getRecentComments().size());
+		Question question = new Question(user, "Question");
+		Answer answer = question.answer(user, "Answer");
+		question.comment(user, "Comment");
+		assertEquals(1, user.getRecentQuestions().size());
+		assertEquals(1, user.getRecentAnswers().size());
+		assertEquals(1, user.getRecentComments().size());
+
+		for (int i = 0; i < 4; i++) {
+			sys.second(i);
+			question.answer(user, "Answer " + i);
+		}
+		assertEquals(3, user.getRecentAnswers().size());
+		assertFalse(user.getRecentAnswers().contains(answer));
+	}
+
+	@Test
 	public void shouldHaveOneHighRatedAnswer() {
 		User user = new User("Jack", "jack");
 		Question q = new Question(user, "Why?");
 		q.answer(user, "Because");
 
-		User a = new User("a", "a");
-		User b = new User("b", "b");
-		User c = new User("c", "c");
-		User d = new User("d", "d");
-		User e = new User("e", "e");
+		assertEquals(0, user.highRatedAnswers().size());
+		assertTrue(Database.get().questions().countHighRatedAnswers() == 0);
 
-		q.answers().get(0).voteUp(a);
-		q.answers().get(0).voteUp(b);
-		q.answers().get(0).voteUp(c);
-		q.answers().get(0).voteUp(d);
-		q.answers().get(0).voteUp(e);
+		User A = new User("A", "a");
+		User B = new User("B", "b");
+		User C = new User("C", "c");
+		User D = new User("D", "d");
+		User E = new User("E", "e");
+
+		q.answers().get(0).voteUp(A);
+		q.answers().get(0).voteUp(B);
+		q.answers().get(0).voteUp(C);
+		q.answers().get(0).voteUp(D);
+		q.answers().get(0).voteUp(E);
 
 		assertEquals(1, user.highRatedAnswers().size());
+		assertTrue(Database.get().questions().countHighRatedAnswers() > 0);
 
-		a.delete();
-		b.delete();
-		c.delete();
-		d.delete();
-		e.delete();
+		A.delete();
+		B.delete();
+		C.delete();
+		D.delete();
+		E.delete();
 
 		assertEquals(0, user.highRatedAnswers().size());
 	}
@@ -269,6 +325,9 @@ public class UserTest extends UnitTest {
 		assertEquals(1, user5.getSuggestedQuestions().size());
 		assertEquals(m, user5.getSuggestedQuestions().get(0));
 
+		n.answer(user5, "and then some");
+		assertEquals(1, user5.getSuggestedQuestions().size());
+		assertEquals(m, user5.getSuggestedQuestions().get(0));
 	}
 
 	@Test
@@ -291,6 +350,57 @@ public class UserTest extends UnitTest {
 
 		assertEquals(3, user5.getSuggestedQuestions().size());
 		assertEquals(m, user5.getSuggestedQuestions().get(0));
+	}
+
+	@Test
+	public void shouldSuggestSixQuestionsMax() {
+		User user3 = new User("User3", "user3");
+		User user5 = new User("User5", "user5");
+		for (int i = 0; i < 10; i++) {
+			Question q = new Question(user3, "Hard question " + i);
+			q.setTagString("demo");
+		}
+
+		Question q = new Question(user3, "Simple question");
+		q.setTagString("demo");
+		q.answer(user5, "Simple!");
+
+		assertEquals(6, user5.getSuggestedQuestions().size());
+	}
+
+	@Test
+	public void shouldNotSuggestSameQuestionTwice() {
+		User user5 = new User("User5", "user5");
+		Question q = new Question(null, "suggest me!");
+		q.setTagString("demo");
+		Question r = new Question(null, "answer me!");
+		r.setTagString("demo");
+		r.answer(user5, "ok");
+		Question s = new Question(null, "answer me, too!");
+		s.setTagString("demo");
+		s.answer(user5, "ok");
+
+		assertEquals(1, user5.getSuggestedQuestions().size());
+		assertEquals(q, user5.getSuggestedQuestions().get(0));
+	}
+
+	@Test
+	public void shouldNotSuggestOldQuestions() {
+		SystemInformationMock sys = new SystemInformationMock();
+		SystemInformation.mockWith(sys);
+		sys.year(2000).month(6).day(6).hour(12).minute(0).second(0);
+
+		User user5 = new User("User5", "user5");
+		Question q = new Question(null, "suggest me!");
+		q.setTagString("demo");
+
+		Question r = new Question(null, "answer me!");
+		r.setTagString("demo");
+		r.answer(user5, "ok");
+
+		assertEquals(1, user5.getSuggestedQuestions().size());
+		sys.year(2001);
+		assertEquals(0, user5.getSuggestedQuestions().size());
 	}
 
 	@Test
@@ -396,11 +506,100 @@ public class UserTest extends UnitTest {
 		k.setTagString("demo");
 		l.setTagString("demo");
 		k.answer(james, "Because");
-		k.answer(john, "No idea");
-		james.getQuestions().get(0).setBestAnswer(k.getAnswer(1));
+		k.setBestAnswer(k.answer(john, "No idea"));
 		l.answer(kate, "Therefore");
 		assertEquals(0, kate.getSuggestedQuestions().size());
-
 	}
 
+	@Test
+	public void shouldNotSuggestQuestionsWithManyAnswers() {
+		User user3 = new User("User3", "user3");
+		User user5 = new User("User5", "user5");
+
+		Question p = new Question(user3, "Hard question");
+		p.setTagString("demo");
+		Question q = new Question(user3, "Simple question");
+		q.setTagString("demo");
+
+		q.answer(user5, "Simple!");
+		assertEquals(1, user5.getSuggestedQuestions().size());
+
+		for (int i = 0; i < 9; i++) {
+			p.answer(null, "anonymous genious!");
+		}
+		assertEquals(1, user5.getSuggestedQuestions().size());
+		p.answer(null, "yet another anonymous genious!");
+		assertEquals(0, user5.getSuggestedQuestions().size());
+	}
+
+	@Test
+	public void shouldHaveDebugFriendly_toString() {
+		User james = new User("James", "james");
+		Question question = new Question(james, "Why?");
+		Answer answer = question.answer(james, "No idea");
+		question.setTagString("TAG");
+		Tag tag = question.getTags().get(0);
+		assertEquals(james.toString(), "U[James]");
+		assertEquals(question.toString(), "Question(Why?)");
+		assertEquals(answer.toString(), "Answer(No idea)");
+		assertEquals(tag.toString(), "Tag(tag)");
+	}
+
+	@Test
+	public void testPostAndSearchDelay() {
+		SystemInformationMock sys = new SystemInformationMock();
+		SystemInformation.mockWith(sys);
+		sys.year(2010).month(1).day(1).hour(1).minute(1).second(0);
+		User james = new User("James", "james");
+		assertTrue(james.canPost());
+		assertTrue(james.canSearch());
+
+		james.setLastPostTime(sys.now().getTime());
+		assertFalse(james.canPost());
+		sys.second(30);
+		assertFalse(james.canPost());
+		sys.second(31);
+		assertTrue(james.canPost());
+
+		assertTrue(james.canPost());
+		james.block("You are blocked for making a good Test coverage");
+		assertFalse(james.canPost());
+		james.unblock();
+		assertTrue(james.canPost());
+
+		sys.year(2010).month(1).day(1).hour(1).minute(1).second(0);
+		james.setLastSearchTime(sys.now().getTime());
+		assertFalse(james.canSearch());
+		sys.second(15);
+		assertFalse(james.canSearch());
+		sys.second(16);
+		assertTrue(james.canSearch());
+	}
+
+	@Test
+	public void testTimeToSearchAndPost() {
+		SystemInformationMock sys = new SystemInformationMock();
+		SystemInformation.mockWith(sys);
+		sys.year(2010).month(1).day(1).hour(1).minute(1).second(0);
+		User james = new User("James", "james");
+
+		james.setLastSearchTime(sys.now().getTime());
+		assertEquals(james.timeToSearch(), 15);
+		sys.second(15);
+		assertEquals(james.timeToSearch(), 0);
+		assertFalse(james.canSearch());
+		sys.second(16);
+		assertEquals(james.timeToSearch(), -1);
+		assertTrue(james.canSearch());
+
+		sys.year(2010).month(1).day(1).hour(1).minute(1).second(0);
+		james.setLastPostTime(sys.now().getTime());
+		assertEquals(james.timeToPost(), 30);
+		sys.second(30);
+		assertEquals(james.timeToPost(), 0);
+		assertFalse(james.canPost());
+		sys.second(31);
+		assertEquals(james.timeToPost(), -1);
+		assertTrue(james.canPost());
+	}
 }

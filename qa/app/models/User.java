@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import models.database.Database;
 import models.helpers.IFilter;
@@ -37,10 +38,16 @@ public class User implements IObserver {
 	private String profession;
 	private String employer;
 	private String biography;
+	
+	private String confirmKey;
 
 	private String statustext = "";
 	private boolean isBlocked = false;
 	private boolean isModerator = false;
+	private boolean isConfirmed = false;
+	private long lastSearch = 0;
+	private long lastPost = 0;
+	
 
 	/**
 	 * Creates a <code>User</code> with a given name.
@@ -48,14 +55,27 @@ public class User implements IObserver {
 	 * @param name
 	 *            the name of the <code>User</code>
 	 */
-	public User(String name, String password) {
+	public User(String name, String password, String email) {
 		this.name = name;
 		this.password = Tools.encrypt(password);
+		this.email = email;
+		this.confirmKey = Tools.randomStringGenerator(35);
 		this.items = new HashSet<Item>();
+	}
+	
+	/**
+	 * Only for tests: 
+	 * Creates a <code>User</code> with a given name.
+	 * 
+	 * @param name
+	 *            the name of the <code>User</code>
+	 */
+	public User(String name, String password) {
+		this(name, password, null);
 	}
 
 	public boolean canEdit(Entry entry) {
-		return (entry.owner() == this && !isBlocked()) || isModerator();
+		return entry.owner() == this && !isBlocked() || isModerator();
 	}
 
 	/**
@@ -135,7 +155,7 @@ public class User implements IObserver {
 		Date now = SystemInformation.get().now();
 		int i = 0;
 		for (Item item : this.items) {
-			if ((now.getTime() - item.timestamp().getTime()) <= 60 * 60 * 1000) {
+			if (now.getTime() - item.timestamp().getTime() <= 60 * 60 * 1000) {
 				i++;
 			}
 		}
@@ -149,14 +169,17 @@ public class User implements IObserver {
 	 * @return True if the <code>User</code> is supporting somebody.
 	 */
 	public boolean isMaybeCheater() {
+		int voteCount = 0;
 		HashMap<User, Integer> votesForUser = new HashMap<User, Integer>();
 		for (Item item : this.items) {
 			if (item instanceof Vote && ((Vote) item).up()) {
-				Integer count = votesForUser.get(item.owner());
+				Vote vote = (Vote) item;
+				Integer count = votesForUser.get(vote.getEntry().owner());
 				if (count == null) {
 					count = 0;
 				}
-				votesForUser.put(item.owner(), count + 1);
+				votesForUser.put(vote.getEntry().owner(), count + 1);
+				voteCount++;
 			}
 		}
 
@@ -164,23 +187,22 @@ public class User implements IObserver {
 			return false;
 
 		Integer maxCount = Collections.max(votesForUser.values());
-		return (maxCount > 3 && 1.0 * maxCount / votesForUser.size() > 0.5);
+		return maxCount > 3 && maxCount > 0.5 * voteCount;
 	}
 
 	/**
 	 * Anonymizes all questions, answers and comments by this user.
 	 * 
-	 * @param doAnswers
-	 *            - whether to anonymize this user's answers as well
-	 * @param doComments
-	 *            - whether to anonymize this user's comments as well
+	 * @param keepOnlyQuestions
+	 *            whether to anonymize this user's answers and comments as well
+	 *            or whether to just keep his/her questions
 	 */
-	public void anonymize(boolean doAnswers, boolean doComments) {
+	public void anonymize(boolean keepOnlyQuestions) {
 		// operate on a clone to prevent a ConcurrentModificationException
 		HashSet<Item> clone = (HashSet<Item>) this.items.clone();
 		for (Item item : clone) {
-			if (item instanceof Question || doAnswers && item instanceof Answer
-					|| doComments && item instanceof Comment) {
+			if (item instanceof Question || keepOnlyQuestions
+					&& item instanceof Entry) {
 				((Entry) item).anonymize();
 				this.items.remove(item);
 			}
@@ -208,7 +230,7 @@ public class User implements IObserver {
 	 * 
 	 */
 	public boolean isCheating() {
-		return (isSpammer() || isMaybeCheater());
+		return isSpammer() || isMaybeCheater();
 	}
 
 	/**
@@ -222,6 +244,7 @@ public class User implements IObserver {
 		} else if (isMaybeCheater()) {
 			block("User voted up somebody");
 		}
+		this.setLastPostTime(SystemInformation.get().now().getTime());
 	}
 
 	/**
@@ -235,7 +258,7 @@ public class User implements IObserver {
 			long age = now.getTime() - this.dateOfBirth.getTime();
 			return (int) (age / ((long) 1000 * 3600 * 24 * 365));
 		} else
-			return (0);
+			return 0;
 	}
 
 	/* Getter and Setter for profile data */
@@ -307,6 +330,14 @@ public class User implements IObserver {
 	public void setSHA1Password(String password) {
 		this.password = Tools.encrypt(password);
 	}
+	
+	public String getConfirmKey() {
+		return this.confirmKey;
+	}
+	
+	public void setConfirmKey(String key) {
+		this.confirmKey = key;
+	}
 
 	/**
 	 * Get the reason for why the user is blocked.
@@ -352,6 +383,14 @@ public class User implements IObserver {
 	public boolean isModerator() {
 		return this.isModerator;
 	}
+	
+	/**
+	 * Get the status of the user if he is confirmed or not.
+	 * @return true, if the user is confirmed
+	 */
+	public boolean isConfirmed() {
+		return this.isConfirmed;
+	}
 
 	/**
 	 * Set the status of the user whether he is a moderator or not.
@@ -361,6 +400,13 @@ public class User implements IObserver {
 	 */
 	public void setModerator(Boolean mod) {
 		this.isModerator = mod;
+	}
+	
+	/**
+	 * Set the status of the user on confirmed
+	 */
+	public void confirm() {
+		this.isConfirmed = true;
 	}
 
 	/**
@@ -457,7 +503,7 @@ public class User implements IObserver {
 			for (Question similarQ : q.getSimilarQuestions()) {
 				if (!suggestedQuestions.contains(similarQ)
 						&& !sortedAnsweredQuestions.contains(similarQ)
-						&& !similarQ.owner().equals(this)
+						&& similarQ.owner() != this
 						&& !similarQ.isOldQuestion()
 						&& similarQ.countAnswers() < 10
 						&& !similarQ.hasBestAnswer()) {
@@ -504,7 +550,7 @@ public class User implements IObserver {
 		List recentItems = getItemsByType(type);
 		Collections.sort(recentItems, new Comparator<Item>() {
 			public int compare(Item i1, Item i2) {
-				return i1.timestamp().compareTo(i2.timestamp());
+				return i2.timestamp().compareTo(i1.timestamp());
 			}
 		});
 		if (recentItems.size() > 3)
@@ -590,13 +636,12 @@ public class User implements IObserver {
 		 */
 		List<Notification> notifications = getItemsByType(Notification.class);
 		for (Notification n : notifications) {
-			if (n.getAbout() instanceof Answer) {
-				Answer answer = (Answer) n.getAbout();
-				if (answer.getQuestion() != null) {
-					result.add(n);
-				} else {
-					n.unregister();
-				}
+			// currently, we only notify about answers
+			Answer answer = (Answer) n.getAbout();
+			if (answer.getQuestion() != null) {
+				result.add(n);
+			} else {
+				n.unregister();
 			}
 		}
 		return result;
@@ -642,7 +687,7 @@ public class User implements IObserver {
 	 * Gets a notification by its id value.
 	 * 
 	 * NOTE: slightly hacky since we don't track notifications in a separate
-	 * IDTable but in this.items like everything else - this should get fixed
+	 * HashMap but in this.items like everything else - this should get fixed
 	 * once we migrate to using a real DB.
 	 * 
 	 * @param id
@@ -651,7 +696,7 @@ public class User implements IObserver {
 	 */
 	public Notification getNotification(int id) {
 		for (Notification n : getNotifications())
-			if (n.getID() == id)
+			if (n.id() == id)
 				return n;
 		return null;
 	}
@@ -674,26 +719,6 @@ public class User implements IObserver {
 		return items;
 	}
 
-	/**
-	 * Checks at Sign Up if the entered username is available. This way we can
-	 * avoid having two User called "SoMeThinG" and "SoMetHinG" which might be
-	 * hard to distinguish
-	 * 
-	 * @param username
-	 * @return true if the username is available.
-	 */
-	public static boolean isAvailable(String username) {
-		for (User user : Database.get().users().all()) {
-			if (user.getName().toLowerCase().equals(username.toLowerCase()))
-				return false;
-		}
-		return true;
-	}
-
-	public static User get(String name) {
-		return Database.get().users().get(name.toLowerCase());
-	}
-
 	public void setDateOfBirth(Date time) {
 		this.dateOfBirth = time;
 	}
@@ -701,6 +726,114 @@ public class User implements IObserver {
 	@Override
 	public String toString() {
 		return "U[" + this.name + "]";
+	}
+
+	/**
+	 * Having less than MINIMAL_EXPERTISE_THRESHOLD votes on a topic prevents a
+	 * user from being an expert.
+	 */
+	private final int MINIMAL_EXPERTISE_THRESHOLD = 2;
+	/**
+	 * What percentage of most proficient users are considered experts on a
+	 * topic.
+	 */
+	private final int EXPERTISE_PERCENTILE = 20;
+
+	/**
+	 * Determines all the topics this user is an expert in. Each tag is
+	 * considered a topic and a user is considered an expert if he's got a
+	 * minimum of two positive votes (or one accepted best answer) to one of the
+	 * questions with the tag and if his vote count is in the first quintile
+	 * (i.e. at most 20 % of all the answerers for a given topic can be
+	 * experts).
+	 * 
+	 * @return the list of tags for which this user is an expert
+	 */
+	public List<Tag> getExpertise() {
+		Map<Tag, Map<User, Integer>> stats = Database.get().questions()
+				.collectExpertiseStatistics();
+
+		List<Tag> expertise = new ArrayList();
+		for (Tag tag : stats.keySet()) {
+			// ignore tags this user knows nothing about
+			if (!stats.get(tag).containsKey(this)) {
+				continue;
+			}
+			// ignore tags this user knows hardly anything about
+			if (stats.get(tag).get(this) < MINIMAL_EXPERTISE_THRESHOLD) {
+				continue;
+			}
+
+			Map<User, Integer> tagStats = stats.get(tag);
+			List<User> experts = Mapper.sortByValue(tagStats);
+			int threshold = (100 - EXPERTISE_PERCENTILE) * experts.size() / 100;
+			if (tagStats.get(this) >= tagStats.get(experts.get(threshold))) {
+				expertise.add(tag);
+			}
+		}
+
+		return expertise;
+	}
+
+	/**
+	 * Set the time of the Users last search to a specific one.
+	 * 
+	 * @param Time
+	 *            in milliseconds after 1970.
+	 */
+	public void setLastSearchTime(long time) {
+		this.lastSearch = time;
+	}
+
+	/**
+	 * Checks if the user can use the search. There must be at least 15 seconds
+	 * between his last search and now.
+	 * 
+	 * @return true if the user can search
+	 */
+	public boolean canSearch() {
+		return this.timeToSearch() < 0;
+	}
+
+	/**
+	 * Calculates the remaining time until the user can make a new search.
+	 * Counting down from 15.
+	 * 
+	 * @return an Integer that equals the remaining seconds.
+	 */
+	public int timeToSearch() {
+		return (int) (15 - (SystemInformation.get().now().getTime() - this.lastSearch) / 1000);
+	}
+
+	/**
+	 * Set the time of the Users last Post to a specific one.
+	 * 
+	 * @param Time
+	 *            in milliseconds after 1970.
+	 */
+	public void setLastPostTime(long time) {
+		this.lastPost = time;
+	}
+
+	/**
+	 * Checks if the user can ask, answer or comment a post. There must be at
+	 * least 30 seconds between his last post to make a new one and he must not
+	 * be blocked.
+	 * 
+	 * @return true if the user can post
+	 */
+	public boolean canPost() {
+		return !this.isBlocked() && this.timeToPost() < 0;
+	}
+
+	/**
+	 * Calculates the remaining time until he can make a new post. Counting down
+	 * from 30.
+	 * 
+	 * @return an Integer that equals the remaining seconds.
+	 */
+	public int timeToPost() {
+		return (int) (30 - (SystemInformation.get().now().getTime() - this.lastPost) / 1000);
 	}
 
 }

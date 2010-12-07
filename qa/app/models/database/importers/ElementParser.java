@@ -7,24 +7,23 @@ public class ElementParser {
 	private Syntax syntax;
 	private Element elt;
 
-	public ElementParser(Syntax syntax_) {
-		this.syntax = syntax_;
-		this.elt = new Element("base");
+	public ElementParser(Syntax syntax) {
+		this.syntax = syntax;
+		this.elt = new Element("root");
 	}
 
-	public void start(String tag, Map<String, String> attributes)
-			throws SemanticError {
+	public void start(String tag, Map<String, String> attributes) {
 		Element subelt = new Element(tag, attributes);
 		this.elt.addAt(tag, subelt);
 		this.elt = subelt;
 		this.syntax = this.syntax.get(tag);
 	}
 
-	public void start(String tag) throws SemanticError {
+	public void start(String tag) {
 		start(tag, null);
 	}
 
-	public void end() throws SemanticError {
+	public void end() {
 		this.syntax.callback(this.elt);
 		this.elt = this.elt.getParent();
 		this.syntax = this.syntax.getParent();

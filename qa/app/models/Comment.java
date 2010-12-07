@@ -2,7 +2,6 @@ package models;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Set;
 
 /**
  * 
@@ -15,19 +14,15 @@ import java.util.Set;
 
 public class Comment extends Entry {
 
-	/** The id. */
-	private int id;
-
 	/** The entry. */
 	private Entry entry;
 	
 	/** A set of Users who like this Comment */
-	private HashSet<User> likers;
+	private final HashSet<User> likers;
 
-	public Comment(int id, User owner, Entry entry, String content) {
+	public Comment(User owner, Entry entry, String content) {
 		super(owner, content);
 		this.entry = entry;
-		this.id = id;
 		likers = new HashSet();
 	}
 
@@ -43,15 +38,6 @@ public class Comment extends Entry {
 		this.entry = null;
 	}
 
-	/**
-	 * Id.
-	 * 
-	 * @return the id of the <code>Comment</code>
-	 */
-	public int id() {
-		return this.id;
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -62,7 +48,7 @@ public class Comment extends Entry {
 	 * Just a stub. Should be removed with refactoring
 	 */
 	public void unregister(Comment comment) {
-		// TODO Auto-generated method stub
+		throw new IllegalArgumentException("There are no nested comments!");
 	}
 
 	/**

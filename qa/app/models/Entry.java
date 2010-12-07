@@ -26,6 +26,8 @@ public abstract class Entry extends Item implements Comparable<Entry> {
 	 */
 	public Entry(User owner, String content) {
 		super(owner);
+		if (content == null)
+			content = "";
 		this.content = content;
 		this.votes = new HashMap<User, Vote>();
 	}
@@ -37,15 +39,6 @@ public abstract class Entry extends Item implements Comparable<Entry> {
 	 *            the <code> Comment </code> to be unregistered
 	 */
 	public abstract void unregister(Comment comment);
-
-	/**
-	 * Unregisters the <code>Entry</code> if it gets deleted.
-	 */
-	@Override
-	public void unregister() {
-		unregisterVotes();
-		unregisterUser();
-	}
 
 	/**
 	 * Delete all {@link Vote}s if the <code>Entry</code> gets deleted.
@@ -116,7 +109,7 @@ public abstract class Entry extends Item implements Comparable<Entry> {
 		if (diff == 0)
 			// compare by ID instead of - potentially identical - timestamp
 			// for a guaranteed stable sorting (makes testing easier)
-			return getID() - e.getID();
+			return id() - e.id();
 		return diff;
 	}
 
@@ -258,7 +251,8 @@ public abstract class Entry extends Item implements Comparable<Entry> {
 
 	@Override
 	public String toString() {
-		return "Entry(" + summary() + ")";
+		String className = this.getClass().getName();
+		className = className.substring(className.lastIndexOf(".") + 1);
+		return className + "(" + summary() + ")";
 	}
-
 }

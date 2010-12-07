@@ -9,13 +9,18 @@ import models.Answer;
 import models.Comment;
 import models.Notification;
 import models.Question;
+import models.SystemInformation;
 import models.Tag;
 import models.TimeTracker;
 import models.User;
 import models.database.Database;
 import models.helpers.Tools;
+import notifiers.Mails;
+import play.cache.Cache;
 import play.data.validation.Required;
 import play.i18n.Lang;
+import play.libs.Codec;
+import play.libs.Images;
 import play.mvc.Before;
 import play.mvc.Controller;
 
@@ -23,9 +28,8 @@ public class Application extends Controller {
 
 	@Before
 	static void setConnectedUser() {
-		if (controllers.Secure.Security.isConnected()) {
-			User user = Database.get().users().get(
-					controllers.Secure.Security.connected());
+		if (Secure.Security.isConnected()) {
+			User user = Database.get().users().get(Secure.Security.connected());
 			renderArgs.put("user", user);
 		}
 	}
@@ -42,7 +46,7 @@ public class Application extends Controller {
 				Session.get().getEntriesPerPage());
 		Collections.sort(questions, new Comparator<Question>() {
 			public int compare(Question q1, Question q2) {
-				return (q2.timestamp()).compareTo(q1.timestamp());
+				return q2.timestamp().compareTo(q1.timestamp());
 			}
 		});
 		questions = Tools.paginate(questions,
@@ -61,8 +65,8 @@ public class Application extends Controller {
 		if (question == null) {
 			render();
 		} else {
-			List<Question> similarQuestions = (new ArrayList(question
-					.getSimilarQuestions()));
+			List<Question> similarQuestions = new ArrayList(question
+					.getSimilarQuestions());
 			if (similarQuestions.size() > 5) {
 				similarQuestions = similarQuestions.subList(0, 5);
 			}
@@ -132,7 +136,8 @@ public class Application extends Controller {
 	}
 
 	public static void register() {
-		render();
+	    String randomID = Codec.UUID();
+	    render(randomID);
 	}
 
 	/**
@@ -147,17 +152,22 @@ public class Application extends Controller {
 	 * @param passwordrepeat
 	 *            the repeated password.
 	 */
-	public static void signup(@Required String username, String password,
-			String passwordrepeat) {
-
-		if (password.equals(passwordrepeat) && User.isAvailable(username)) {
-			Database.get().users().register(username, password);
-			// Mark user as connected
-			session.put("username", username);
+	public static void signup(@Required String username, String password, @Required String email, 
+			String passwordrepeat, @Required String code, String randomID) {
+		boolean isUsernameAvailable = Database.get().users()
+				.isAvailable(username);
+		validation.equals(code, Cache.get(randomID));
+		    if(validation.hasErrors()) {
+		    	flash.error("captcha.invalid");
+		    	render("Application/register.html", randomID);
+		    }
+		if (password.equals(passwordrepeat) && isUsernameAvailable) {
+			Database.get().users().register(username, password, email);
+			Mails.welcome(Database.get().users().get(username));
 			index(0);
 		} else {
 			flash.keep("url");
-			if (!User.isAvailable(username)) {
+			if (!isUsernameAvailable) {
 				flash.error("secure.usernameerror");
 			}
 			if (!password.equals(passwordrepeat)) {
@@ -198,7 +208,18 @@ public class Application extends Controller {
 		render(showUser, biography, canEdit);
 	}
 
-	// TODO Add javadoc
+	/**
+	 * Renders a JSON list combining all the currently used tags starting with a
+	 * given term and the most often used words in a given (question's) content.
+	 * This list can be used for implementing client-side tag autocompletion.
+	 * 
+	 * @param term
+	 *            the part of the tag a user has already entered and that is
+	 *            supposed to be auto-completed
+	 * @param content
+	 *            the content of e.g. a question to search through for often
+	 *            occurring words that might also be useful as tags
+	 */
 	public static void tags(String term, String content) {
 		String tagString = "";
 		for (Tag tag : Database.get().tags().all()) {
@@ -215,6 +236,31 @@ public class Application extends Controller {
 		renderJSON(tags);
 	}
 
+<<<<<<< HEAD
+=======
+	/**
+	 * Performs a search for the entered term. The view is displayed at the
+	 * given index. Sets the users lastSearchTime to the time now, thereby we
+	 * can allow or restrict a further search of this user.
+	 * 
+	 * @param term
+	 *            the term to be searched for.
+	 * @param index
+	 *            the page-number which will be displayed.
+	 */
+	public static void search(String term, int index) {
+		List<Question> results = Database.get().questions().searchFor(term);
+		int maxIndex = Tools.determineMaximumIndex(results, entriesPerPage);
+		results = Tools.paginate(results, entriesPerPage, index);
+		User user = Session.get().currentUser();
+		if (user != null) {
+			user.setLastSearchTime(SystemInformation.get().now().getTime());
+		}
+		render(results, term, index, maxIndex);
+	}
+
+	// TODO Javadoc
+>>>>>>> 96254e150794b2745efee784518b493b68981bcd
 	public static void notifications(int content) {
 		User user = Session.get().currentUser();
 		if (user != null) {
@@ -265,7 +311,8 @@ public class Application extends Controller {
 	 * clear the database.
 	 */
 	public static void admin() {
-		if (!Session.get().currentUser().isModerator()) {
+		User user = Session.get().currentUser();
+		if (user == null || !user.isModerator()) {
 			flash.error("secure.moderatorerror");
 			Application.index(0);
 		}
@@ -276,7 +323,8 @@ public class Application extends Controller {
 	 * Leads the the clearDB page.
 	 */
 	public static void clearDB() {
-		if (!Session.get().currentUser().isModerator()) {
+		User user = Session.get().currentUser();
+		if (user == null || !user.isModerator()) {
 			flash.error("secure.moderatorerror");
 			Application.index(0);
 		}
@@ -299,7 +347,11 @@ public class Application extends Controller {
 			flash.error("Wanna silence me? Try again!");
 		}
 		if (!CUser.redirectToCallingPage()) {
+<<<<<<< HEAD
 			Application.index(0);
+=======
+			index(0);
+>>>>>>> 96254e150794b2745efee784518b493b68981bcd
 		}
 	}
 
@@ -309,11 +361,47 @@ public class Application extends Controller {
 	 * @param userName
 	 *            the name of the {@link User} who owns the profile
 	 */
-	public static void editProfile(String userName) {
+	public static void editProfile(@Required String userName) {
 		User showUser = Database.get().users().get(userName);
 		if (!userCanEditProfile(showUser)) {
 			showprofile(userName);
 		}
 		render(showUser);
+	}
+	
+	/**
+	 * Confirm a {@link User}'s profile if they clicked on the right link
+	 * 
+	 * @param username of the {@link User}
+	 * @param key for the Confirmation
+	 */
+	public static void confirmUser(@Required String username, String key) {
+		User user = Database.get().users().get(username);
+		boolean existsUser = Database.get().users().isAvailable(username);
+		if (!existsUser && key.equals(user.getConfirmKey())) {
+			user.confirm();
+			flash.success("user.confirm.success");
+			try {
+				Secure.login();
+			} catch (Throwable e) {
+				e.printStackTrace();
+			}
+		}
+		else {
+			flash.error("user.confirm.error");
+			index(0);
+			}
+		}
+		
+	/**
+	 * Generates a random captcha-image.
+	 * 
+	 * @param id
+	 */
+	public static void captcha(String id) {
+	    Images.Captcha captcha = Images.captcha();
+	    String code = captcha.getText("#ff8400");
+	    Cache.set(id, code, "3mn");
+	    renderBinary(captcha);
 	}
 }

@@ -18,8 +18,15 @@ reason=Reason
 english=English
 german=German
 french=French
+haxor=h4x0r
 group3ftw=A project by Group 3.
+<<<<<<< HEAD
 more=more
+=======
+captcha.show=Captcha
+captcha.retype=Retype captcha
+captcha.invalid=Invalid captcha, please try again.
+>>>>>>> 96254e150794b2745efee784518b493b68981bcd
 
 # User messages
 user=User
@@ -27,7 +34,7 @@ user.login=Login
 user.log_in=Log in
 user.logout=Logout
 user.signup=Sign up
-user.profile=Profile
+user.profile=My Profile
 user.nonexistent=No such user
 user.delete=Do you really want to delete the Account?
 user.confirmanonymize=Yes, but keep all questions and answers.
@@ -46,6 +53,12 @@ user.blockedforreason=Blocked because
 user.unblocknow=Unblock now
 user.unblock=Unblock user
 user.nonexistent=You're not logged in or there is no such user.
+user.expertise=Expertise
+user.isnovice=%s is still a novice.
+user.confirm.success=You have successfully confirmed your ajopi account!
+user.confirm.error=The ajopi account is not confirmed or does not consist!
+user.cannotsearch=Wait %d seconds to search.
+user.cannotpost=Wait %d seconds to post.
 
 # Post messages
 posts.perday=per day
@@ -54,7 +67,7 @@ posts.permonth=per month
 #   Question messages
 questions=Questions
 question.ask=Ask question
-question.label=Label this question:
+question.label=Tag this question:
 question.labeleg=e.g. java, design, idea
 question.new=New question
 question.add=Add new question
@@ -150,7 +163,7 @@ secure.userdeletedflash=The user has been deleted.
 secure.userdeleteerror=You're not allowed to delete user.
 secure.bestanswerflash=We're glad that you've been helped!
 secure.editprofileerror=You're not allowed to edit this profile.
-secure.editprofileflash=Thanks for keeping this question's labels up-to-date.
+secure.editprofileflash=Thanks for keeping this question's tags up-to-date.
 secure.startwatchquestionflash=You're now watching this question.
 secure.stopwatchquestionflash=You're no longer watching this question.
 secure.notificationsmarkedasreadflash=All notifications have been marked as read.
@@ -186,3 +199,17 @@ since.days=%d day(s) ago
 since.months=%d month(s) ago
 since.years=%d year(s) ago
 
+<<<<<<< HEAD
+=======
+search.placeholder="Search question"
+
+
+# Mails
+
+mail.welcome.title=confirm your ajopi account
+mail.welcome.subject="Welcome"
+mail.welcome.hi=Hi
+mail.welcome.introduction=Please confirm your ajopi account by clicking this link:
+mail.welcome.introduction2=Once you confirm, you will have full access to ajopi and all future notifications will be sent to this email address.
+mail.welcome.team=Best regards your ajopi team
+>>>>>>> 96254e150794b2745efee784518b493b68981bcd

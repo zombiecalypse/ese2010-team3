@@ -9,6 +9,7 @@ import models.database.Database;
 import models.database.IDatabase;
 import models.database.HotDatabase.HotDatabase;
 import models.database.importers.Importer;
+import models.database.importers.SemanticError;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -136,7 +137,7 @@ public class XMLReadingTest extends UnitTest {
 	public void shouldReadTom() throws SAXException, IOException,
 			ParserConfigurationException {
 		Importer.importXML(this.xml);
-		assertFalse(Database.get().users().needSignUp("sdaau"));
+		assertFalse(Database.get().users().isAvailable("sdaau"));
 	}
 
 	@Test
@@ -162,5 +163,74 @@ public class XMLReadingTest extends UnitTest {
 		Question question = Database.get().questions().all().get(0);
 		assertFalse(question.content().startsWith("<![CDATA["));
 		assertFalse(question.answers().get(0).content().contains("<![CDATA["));
+	}
+
+	@Test
+	public void shouldCheckSemantics() throws SAXException, IOException,
+			ParserConfigurationException {
+		boolean hasThrown = false;
+		try {
+			Importer.importXML("<invalid />");
+		} catch (SemanticError err) {
+			hasThrown = true;
+		}
+		assertTrue(hasThrown);
+
+		hasThrown = false;
+		try {
+			Importer.importXML("<QA><answers><answer><ownerid>666</ownerid><questionid>999</questionid></answer></answers></QA>");
+		} catch (SemanticError err) {
+			hasThrown = true;
+		}
+		assertTrue(hasThrown);
+
+		hasThrown = false;
+		try {
+			Importer.importXML("<QA><questions><question/></questions></QA>");
+		} catch (SemanticError err) {
+			hasThrown = true;
+		}
+		assertTrue(hasThrown);
+
+		hasThrown = false;
+		try {
+			Importer.importXML(xml.replace("title>", "ignored>"));
+		} catch (SemanticError err) {
+			hasThrown = true;
+		}
+		assertTrue(hasThrown);
+
+		hasThrown = false;
+		try {
+			Importer.importXML(xml.replace("<ownerid>277826</ownerid>",
+					"<ownerid>13</ownerid>"));
+		} catch (SemanticError err) {
+			hasThrown = true;
+		}
+		assertTrue(hasThrown);
+
+		hasThrown = false;
+		try {
+			Importer.importXML(xml.replace("<questionid>4119991</questionid>",
+					"<questionid>37</questionid>"));
+		} catch (SemanticError err) {
+			hasThrown = true;
+		}
+		assertTrue(hasThrown);
+	}
+
+	@Test
+	public void shouldTolerateSomeMissingValues() throws SAXException,
+			IOException, ParserConfigurationException {
+		Importer.importXML(xml.replace("<ownerid>277826</ownerid>",
+				"<ownerid/>").replace("<answer id=\"4120453\">", "<answer>"));
+		Question question = Database.get().questions().all().get(0);
+		assertNull(question.owner());
+		assertNull(question.answers().get(0).owner());
+	}
+
+	@Test
+	public void shouldMakeCoberturaHappy() {
+		new Importer();
 	}
 }

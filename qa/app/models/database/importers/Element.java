@@ -6,17 +6,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Reproduces the structure of a XML document:
+ * Reproduces a partial structure of an XML document:
  * <ul>
  * <li>Each <code>Element</code> has a number of subelements.
  * <li>An <code>Element</code> might contain text.
- * <li>An <code>Element</code> has a title.
+ * <li>An <code>Element</code> has a tag name.
  * <li>An <code>Element</code> might have Attributes.
  * <li>Each <code>Element</code> has exactly one parent.
  * </ul>
  * 
  * @author aaron
- * 
  */
 public class Element {
 	private final String name;
@@ -25,33 +24,21 @@ public class Element {
 	private final Map<String, List<Element>> subelements;
 	private Element parent;
 
-	public Element(String name_, Map<String, String> attributes) {
-		this(name_);
+	public Element(String name, Map<String, String> attributes) {
+		this(name);
 		this.attrs = attributes;
 	}
 
-	public Element(String name_) {
-		this.name = name_;
+	public Element(String name) {
+		this.name = name;
 		this.subelements = new HashMap<String, List<Element>>();
 		this.text = new StringBuilder();
 	}
 
-	public Element(String name_, Element parent_) {
-		this(name_);
-		this.parent = parent_;
-	}
-
 	@Override
 	public String toString() {
-		return "E["
-				+ this.name
-				+ "](\""
-				+ (this.text == null ? "" : this.text.toString())
-				+ "\""
-				+
-					(this.subelements == null ? "" : ","
-							+ this.subelements.toString())
-				+ ")";
+		return "E[" + this.name + "](\"" + this.text.toString() + "\","
+				+ this.subelements.toString() + ")";
 	}
 
 	/**
@@ -81,9 +68,13 @@ public class Element {
 	 * expected.
 	 * 
 	 * @param tag
-	 * @return
+	 *            the tag's name
+	 * @return the tag's text content (or <code>null</code> if there's no such
+	 *         tag)
 	 */
 	public String getText(String tag) {
+		if (!this.subelements.containsKey(tag))
+			return null;
 		return get(tag).get(0).getText();
 	}
 
@@ -111,21 +102,23 @@ public class Element {
 		subelt.parent = this;
 	}
 
+	/**
+	 * Returns this element's parent (if there is any).
+	 * 
+	 * @return the parent or <code>null</code>
+	 */
 	public Element getParent() {
 		return this.parent;
 	}
 
 	/**
-	 * Checks if there are subelements of the type <code>tag</code>
+	 * Returns a named attribute of this element (if there is any).
 	 * 
-	 * @param tag
-	 * @return true iff one can navigate to that tag.
+	 * @param string
+	 *            the attribute's name
+	 * @return its value or <code>null</code>
 	 */
-	public boolean has(String tag) {
-		return this.subelements.containsKey(tag);
-	}
-
-	public String getArg(String string) {
-		return this.attrs.get(string);
+	public String getArg(String name) {
+		return this.attrs.get(name);
 	}
 }

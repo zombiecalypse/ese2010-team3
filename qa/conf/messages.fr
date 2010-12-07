@@ -21,7 +21,11 @@ reason=Raison
 english=Anglais
 german=Allemande
 french=Français
+haxor=h4x0r
 group3ftw=Un project par le groupe 3.
+captcha.show=Captcha
+captcha.retype=Entrez captcha
+captcha.invalid=Captcha n'est pas correct, s'il vous plaît essayer à nouveau.
 
 # User messages
 user=Utilisateur
@@ -29,7 +33,7 @@ user.login=Login
 user.log_in=Connectez-vous
 user.logout=Déconnexion
 user.signup=Signer
-user.profile=Profile
+user.profile=Mon Profile
 user.nonexistent=Cet utilisateur n'esxiste pas.
 user.delete=Voulez-vous vraiment supprimer le profil?
 user.confirmanonymize=Oui, mais gardez tous mes questions et réponses.
@@ -48,6 +52,12 @@ user.blockedforreason=Bloqué parce que
 user.unblocknow=Débloquer maintenant
 user.unblock=Débloquer utilisateur
 user.nonexistent=Vous n'êtes pas connectez ou cet utilisateur n'existe pas.
+user.expertise=Expertise
+user.isnovice=%s est encore un novice.
+user.confirm.success=Vous avez confirmé votre compte ajopi avec succès!
+user.confirm.error=Le compte ajopi n'est pas confirmée ou ne consiste pas!
+user.cannotsearch=Faisez une recherche en %d secondes.
+user.cannotpost=Faisez une contribution en %d secondes.
 
 # Post messages
 posts.perday=par jour
@@ -176,3 +186,11 @@ since.months=%d mois avant
 since.years=%d an(s) avant
 
 search.placeholder="Chercher question"
+
+# Mails
+
+mail.welcome.title=confirmer votre compte ajopi
+mail.welcome.hi=Hi
+mail.welcome.introduction=S'il vous plaît confirmer votre compte ajopi en cliquant sur ce lien:
+mail.welcome.introduction2=Dès que vous confirmez, vous aurez un accès complet à toutes les notifications ajopi et futurs seront envoyés à cette adresse e-mail.
+mail.welcome.team=Cordialement votre équipe ajopi

@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
 import models.database.Database;
-import models.helpers.IDTable;
 import models.helpers.IObservable;
 import models.helpers.IObserver;
 
@@ -22,9 +22,8 @@ import models.helpers.IObserver;
  */
 public class Question extends Entry implements IObservable {
 
-	private IDTable<Answer> answers;
-	private IDTable<Comment> comments;
-	private final int id;
+	private HashMap<Integer, Answer> answers;
+	private HashMap<Integer, Comment> comments;
 	private boolean isLocked = false;
 
 	private Answer bestAnswer;
@@ -53,10 +52,10 @@ public class Question extends Entry implements IObservable {
 		 *            of the <code>Question</code>
 		 */
 		super(owner, content);
-		this.answers = new IDTable<Answer>();
-		this.comments = new IDTable<Comment>();
+		this.answers = new HashMap<Integer, Answer>();
+		this.comments = new HashMap<Integer, Comment>();
 		this.observers = new HashSet<IObserver>();
-		this.id = Database.get().questions().register(this);
+		Database.get().questions().register(this);
 	}
 
 	/**
@@ -67,8 +66,8 @@ public class Question extends Entry implements IObservable {
 	public void unregister() {
 		Collection<Answer> answers = this.answers.values();
 		Collection<Comment> comments = this.comments.values();
-		this.answers = new IDTable<Answer>();
-		this.comments = new IDTable<Comment>();
+		this.answers = new HashMap<Integer, Answer>();
+		this.comments = new HashMap<Integer, Comment>();
 		for (Answer answer : answers) {
 			answer.unregister();
 		}
@@ -76,9 +75,7 @@ public class Question extends Entry implements IObservable {
 			comment.unregister();
 		}
 		this.observers.clear();
-		if (this.id != -1) {
-			Database.get().questions().remove(this.id);
-		}
+		Database.get().questions().remove(this.id());
 		unregisterVotes();
 		unregisterUser();
 		setTagString("");
@@ -115,8 +112,8 @@ public class Question extends Entry implements IObservable {
 	 * @return an {@link Answer}
 	 */
 	public Answer answer(User user, String content) {
-		Answer answer = new Answer(this.answers.nextID(), user, this, content);
-		this.answers.add(answer);
+		Answer answer = new Answer(user, this, content);
+		this.answers.put(answer.id(), answer);
 		return answer;
 	}
 
@@ -130,9 +127,9 @@ public class Question extends Entry implements IObservable {
 	 * @return an {@link Comment}
 	 */
 	public Comment comment(User user, String content) {
-		Comment comment = new Comment(this.comments.nextID(), user, this,
+		Comment comment = new Comment(user, this,
 				content);
-		this.comments.add(comment);
+		this.comments.put(comment.id(), comment);
 		return comment;
 	}
 
@@ -144,7 +141,7 @@ public class Question extends Entry implements IObservable {
 	 * @return true if the {@link Answer} belongs to the <code>Question</code>
 	 */
 	public boolean hasAnswer(Answer answer) {
-		return this.answers.contains(answer);
+		return this.answers.containsValue(answer);
 	}
 
 	/**
@@ -155,17 +152,7 @@ public class Question extends Entry implements IObservable {
 	 * @return true if the {@link Comment} belongs to the <code>Question</code>
 	 */
 	public boolean hasComment(Comment comment) {
-		return this.comments.contains(comment);
-	}
-
-	/**
-	 * Get the <code>id</code> of the <code>Question</code>. The <code>id</code>
-	 * does never change.
-	 * 
-	 * @return id of the <code>Question</code>
-	 */
-	public int id() {
-		return this.id;
+		return this.comments.containsValue(comment);
 	}
 
 	/**
@@ -366,22 +353,23 @@ public class Question extends Entry implements IObservable {
 	/**
 	 * Determines whether the question is old (Older than 120 days).
 	 * 
-	 * 
-	 * 
 	 * @return boolean
 	 */
 	public boolean isOldQuestion() {
-		long diff = SystemInformation.get().now().getTime()
-				- timestamp().getTime();
-		return ((diff / (1000 * 60 * 60 * 24) > 120));
+		double dayDiff = (double) (SystemInformation.get().now().getTime() - timestamp()
+				.getTime()) / (1000 * 60 * 60 * 24);
+		return dayDiff > 120;
 	}
 
 	public int countAnswers() {
 		return this.answers.size();
 	}
 
+<<<<<<< HEAD
 	public void addTag(String text) {
 		this.tags.add(Database.get().tags().getOrAdd(text));
 	}
 
+=======
+>>>>>>> 96254e150794b2745efee784518b493b68981bcd
 }

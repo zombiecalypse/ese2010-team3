@@ -19,22 +19,27 @@ public interface IUserDatabase {
 	/**
 	 * Creates a <code>User</code> with the given credentials. Asserts that
 	 * <code>needsSignUp(username)</code> before executing this and
-	 * <code>register(username,password) == get(name)</code>
+	 * <code>register(username,password,email) == get(name)</code>
 	 * 
 	 * @param username
 	 *            unique identifier
 	 * @param password
+	 * 
+	 * @param email
+	 * 
 	 * @return The user with this credentials
 	 */
-	public User register(String username, String password);
+	public User register(String username, String password, String email);
 
 	/**
-	 * Validate if the <code>User</code> is already in our database.
+	 * Checks at Sign Up if the entered username is available. This way we can
+	 * avoid having two User called "SoMeThinG" and "SoMetHinG" which might be
+	 * hard to distinguish
 	 * 
 	 * @param username
 	 * @return True iff there is no <code>User</code> of that name
 	 */
-	public boolean needSignUp(String username);
+	public boolean isAvailable(String username);
 
 	/**
 	 * Deletes the user from the database without clean up.

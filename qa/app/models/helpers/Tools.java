@@ -5,9 +5,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import models.SearchEngine.StopWords;
 
@@ -19,18 +22,33 @@ import org.pegdown.PegDownProcessor;
 public class Tools {
 
 	/**
-	 * Encrypt the password with SHA-1.
+	 * Digest a password with the SHA-1 hash algorithm.
 	 * 
 	 * @param password
-	 * @return the encrypted password
+	 * @return the fingerprint of the password
 	 */
 	public static String encrypt(String password) {
+		return digest(password, "SHA-1");
+	}
+
+	/**
+	 * Calculates a digital fingerprint for a given string with a given hash
+	 * algorithm such as MD5 or SHA-1.
+	 * 
+	 * @param string
+	 *            the string to calculate the fingerprint for
+	 * @param hashAlgorithm
+	 *            the hash algorithm to be used (e.g. MD5 or SHA-1)
+	 * @return a hex digest of at most 32 chars for MD5 or 40 chars for SHA-1
+	 *         (or <code>null</code> if the desired algorithm isn't available)
+	 */
+	public static String digest(String string, String hashAlgorithm) {
 		try {
-			MessageDigest m = MessageDigest.getInstance("SHA-1");
-			return new BigInteger(1, m.digest(password.getBytes()))
+			MessageDigest m = MessageDigest.getInstance(hashAlgorithm);
+			return new BigInteger(1, m.digest(string.getBytes()))
 					.toString(16);
 		} catch (NoSuchAlgorithmException e) {
-			return password;
+			return null;
 		}
 	}
 
@@ -76,7 +94,7 @@ public class Tools {
 
 	/**
 	 * Takes a String of words with at least 4 characters and counts the
-	 * occurrence. Words that occur more than 3 times are treated as important
+	 * occurrence. Words that occur more than once are treated as important
 	 * words.
 	 * 
 	 * @param input
@@ -84,33 +102,46 @@ public class Tools {
 	 * @return keywords with words that occur more than 3 times
 	 */
 	public static String extractImportantWords(String input) {
-		input = input.trim();
 		HashMap<String, Integer> keywords = new HashMap();
-		keywords.put("", 1);
-		while (input.contains(" ") && input.length() > 3) {
-			String word = input.substring(0, input.indexOf(" ")).trim();
-			if (word.length() > 3) {
-				int occurrence = (input.length() - (input.replaceAll(word, ""))
-						.length())
-						/ word.length();
-				if (occurrence > 1 && !StopWords.get().contains(word)) {
-					if (keywords.size() < 5) {
-						keywords.put(word, occurrence);
-					} else {
-						for (String stri : keywords.keySet()) {
-							if (keywords.get(stri).intValue() < occurrence) {
-								keywords.put(word, occurrence);
-								keywords.remove(stri);
-								break;
-							}
-						}
-					}
-				}
-			}
-			input = input.replaceAll(word + " ", "").trim();
+		for (String word : input.toLowerCase().split("\\s+")) {
+			if (word.length() <= 3)
+				continue;
+			Integer count = keywords.get(word);
+			if (count == null)
+				count = 0;
+			keywords.put(word, count + 1);
 		}
-		return keywords.keySet().toString().replaceAll("[,\\[\\]]", "")
-				.replaceAll("  ", " ").trim();
+
+		HashMap<String, Integer> filtered = new HashMap();
+		for (String word : keywords.keySet()) {
+			Integer count = keywords.get(word);
+			if (count > 1 && !StopWords.get().contains(word))
+				filtered.put(word, -count);
+		}
+
+		List<String> sorted = Mapper.sortByValue(filtered);
+		if (sorted.size() > 5)
+			sorted = sorted.subList(0, 5);
+		Collections.sort(sorted);
+		return fromStringList(sorted, " ");
+	}
+
+	/**
+	 * Joins all strings from a list with a given joiner.
+	 * 
+	 * @param list
+	 *            a list of strings
+	 * @param joiner
+	 *            a string to be inserted between to strings to join them
+	 * @return the resulting string
+	 */
+	public static String fromStringList(List<String> list, String joiner) {
+		String result = "";
+		for (String string : list)
+			result += joiner + string;
+		if (result.length() > 0)
+			result = result.substring(joiner.length());
+		return result;
 	}
 
 	/**
@@ -138,7 +169,7 @@ public class Tools {
 		if (index * entriesPerPage <= limit)
 			return entries.subList(index * entriesPerPage, limit);
 
-		return entries;
+		return new ArrayList<Question>();
 	}
 
 	public static int determineMaximumIndex(List<?> list,
@@ -166,8 +197,33 @@ public class Tools {
 	 * @return the string
 	 */
 	public static String htmlToText(String content) {
+<<<<<<< HEAD
 		content = content == null ? "" : content;
 		return StringEscapeUtils.unescapeHtml(Jsoup.clean(content,
 				Whitelist.none()));
+=======
+		return StringEscapeUtils.unescapeHtml(Jsoup.clean(content, Whitelist
+				.none()));
+	}
+
+	/**
+	 * Generate a String with random chars
+	 * 
+	 * @param length
+	 *            of the String
+	 * @return the string
+	 */
+	public static String randomStringGenerator(int length) {
+		char[] letters = new char[26];
+		char[] buffer = new char[length];
+		Random random = new Random();
+		for (int i = 0; i < 26; i++)
+			letters[i] = (char) ('a' + i);
+
+		for (int i = 0; i < length; i++)
+			buffer[i] = letters[random.nextInt(letters.length)];
+
+		return new String(buffer);
+>>>>>>> 96254e150794b2745efee784518b493b68981bcd
 	}
 }

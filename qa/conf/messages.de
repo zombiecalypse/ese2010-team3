@@ -18,8 +18,15 @@ reason=Grund
 english=Englisch
 german=Deutsch
 french=Französisch
+haxor=h4x0r
 group3ftw=Ein Projekt von Gruppe 3.
+<<<<<<< HEAD
 more=mehr
+=======
+captcha.show=Captcha
+captcha.retype=Captcha eingeben
+captcha.invalid=Captcha falsch, bitte erneut versuchen.
+>>>>>>> 96254e150794b2745efee784518b493b68981bcd
 
 # User messages
 user=Benutzer
@@ -27,7 +34,7 @@ user.login=Einloggen
 user.log_in=Einloggen
 user.logout=Ausloggen
 user.signup=Registrieren
-user.profile=Profil
+user.profile=Mein Profil
 user.nonexistent=Kein solcher Benutzer
 user.delete=Willst du dieses Benutzerkonto wirklich löschen?
 user.confirmanonymize=Ja, aber behalte all meine Fragen und Antworten.
@@ -46,6 +53,12 @@ user.blockedforreason=Gesperrt weil
 user.unblocknow=Jetzt entsperren
 user.unblock=Entsperren
 user.nonexistent=Du bist nicht eingeloggt oder es existiert kein solcher Benutzer.
+user.expertise=Experte
+user.isnovice=%s ist noch ein Grünschnabel.
+user.confirm.success=Sie haben Ihr Konto erfolgreich bestätigt.
+user.confirm.error=Das Konto wurde noch nicht bestätigt.
+user.cannotsearch=Die Suche ist in %d Sekunden frei.
+user.cannotpost=Sie können in %d Sekunden etwas schreiben.
 
 # Post messages
 posts.perday=pro Tag
@@ -185,4 +198,17 @@ since.days=vor %d Tag(en)
 since.months=vor %d Monat(en)
 since.years=vor %d Jahr(en)
 
+<<<<<<< HEAD
 
+=======
+search.placeholder="Frage suchen"
+
+# Mails
+
+mail.welcome.title=Bestätigung des ajopi-Konto
+mail.welcome.subject="Willkommen"
+mail.welcome.hi=Hallo
+mail.welcome.introduction= Bitte bestätige dein ajopi-Account indem du auf folgenden Link klickst:
+mail.welcome.introduction2=Wenn du dein Konto bestätigt hast, hast du vollen Zugirff auf ajopi. Benachrichtigungen werden in Zukunft an diese Adresse versandt.
+mail.welcome.team=freundliche Grüsse dein ajopi Team
+>>>>>>> 96254e150794b2745efee784518b493b68981bcd

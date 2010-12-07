@@ -16,15 +16,16 @@ public class Bootstrap extends Job {
 	public void doJob() {
 
 		// User
-
-		User jack = Database.get().users().register("Jack", "jack");
-		User john = Database.get().users().register("John", "john");
-		User bill = Database.get().users().register("Bill", "bill");
-		User kate = Database.get().users().register("Kate", "kate");
+		User jack = Database.get().users().register("Jack", "jack", "jack@example.com");
+		User john = Database.get().users().register("John", "john", "john@example.com");
+		User bill = Database.get().users().register("Bill", "bill", "bill@example.com");
+		User kate = Database.get().users().register("Kate", "kate", "kate@example.com");
 		User xss = Database.get().users().register(
-				"<script>alert('XSS')</script>", "xss");
+				"<script>alert('XSS')</script>", "xss", "");
 
-		jack.setEmail("jack@jack.jk");
+		for (User user : Database.get().users().all())
+			user.confirm();
+
 		jack.setFullname("Jack Daniel");
 		jack.setWebsite("http://www.example.org/#jackd");
 		jack.setProfession("Brewer");
